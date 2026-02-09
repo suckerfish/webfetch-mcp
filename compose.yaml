@@ -1,11 +1,13 @@
 services:
   webfetch-mcp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: webfetch-mcp:latest
-    pull_policy: build
+    image: ghcr.io/suckerfish/webfetch-mcp:latest
     container_name: webfetch-mcp
     ports:
-      - "8082:8080"
+      - "${PORT:-8082}:8080"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
