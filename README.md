@@ -12,10 +12,12 @@ Fetch a URL and extract article content as markdown, plain text, or HTML.
 - Chrome TLS fingerprint + spoofed browser headers
 - Article extraction via trafilatura (strips ads, navigation, boilerplate)
 - Returns content + metadata (title, author, date, sitename)
-- Configurable: `output_format`, `favor_precision`, `favor_recall`, `include_links`, `include_images`, `include_tables`, `timeout`
+- Parameters: `url`, `output_format` (markdown|txt|html), `favor_precision`, `favor_recall`, `include_links`, `include_images`, `include_tables`, `timeout`
+
+**Note:** `favor_precision=True` produces tighter extraction with less boilerplate bleed (newsletter blocks, author bios). Default extraction favors recall.
 
 ### `fetch_raw`
-Fetch a URL and return raw HTML without extraction. Truncates at 500KB.
+Fetch a URL and return raw HTML without extraction. Truncates at 500KB. Useful when you need the full page structure.
 
 ## Quick Start
 
@@ -32,11 +34,23 @@ uv run python -m src.server --transport streamable-http --host 0.0.0.0 --port 80
 
 ## Docker
 
+Pre-built multi-arch images (amd64/arm64) are published to GHCR on every push to main:
+
 ```bash
-docker compose up --build
+docker pull ghcr.io/suckerfish/webfetch-mcp:latest
 ```
 
-Runs on port 8082 by default. Health check at `GET /health`.
+Or use Docker Compose:
+
+```bash
+docker compose up
+```
+
+Default port mapping is 8082:8080. Health check at `GET /health`.
+
+## CI/CD
+
+GitHub Actions builds and pushes to `ghcr.io/suckerfish/webfetch-mcp` on pushes to `main` that touch `src/`, `Dockerfile`, `pyproject.toml`, or `uv.lock`. Manual trigger via `workflow_dispatch` is also available.
 
 ## Tech Stack
 
