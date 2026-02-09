@@ -1,0 +1,55 @@
+# webfetch-mcp
+
+A lightweight MCP server that fetches web pages with Chrome TLS fingerprint spoofing and extracts article content.
+
+Anti-bot services like PerimeterX block based on **TLS fingerprint** (JA3/JA4), not just HTTP headers. Standard Python HTTP clients get blocked even with perfect Chrome headers. This server uses `curl_cffi` (which wraps `curl-impersonate`) to replicate Chrome's exact TLS handshake, then extracts clean article content via `trafilatura`.
+
+## Tools
+
+### `fetch_url`
+Fetch a URL and extract article content as markdown, plain text, or HTML.
+
+- Chrome TLS fingerprint + spoofed browser headers
+- Article extraction via trafilatura (strips ads, navigation, boilerplate)
+- Returns content + metadata (title, author, date, sitename)
+- Configurable: `output_format`, `favor_precision`, `favor_recall`, `include_links`, `include_images`, `include_tables`, `timeout`
+
+### `fetch_raw`
+Fetch a URL and return raw HTML without extraction. Truncates at 500KB.
+
+## Quick Start
+
+```bash
+# Install dependencies
+uv venv && uv pip install -e ".[dev]"
+
+# Run locally (stdio)
+uv run python -m src.server
+
+# Run as HTTP server
+uv run python -m src.server --transport streamable-http --host 0.0.0.0 --port 8080
+```
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Runs on port 8082 by default. Health check at `GET /health`.
+
+## Tech Stack
+
+| Component | Choice |
+|-----------|--------|
+| MCP framework | [FastMCP](https://gofastmcp.com) 2.0+ |
+| HTTP client | [curl_cffi](https://github.com/lexiforest/curl_cffi) (Chrome TLS impersonation) |
+| Content extraction | [trafilatura](https://github.com/adbar/trafilatura) |
+| Models | Pydantic 2.0+ |
+| Build | hatchling + uv |
+
+## Tests
+
+```bash
+uv run pytest tests/ -v
+```

@@ -1,0 +1,11 @@
+services:
+  webfetch-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: webfetch-mcp:latest
+    pull_policy: build
+    container_name: webfetch-mcp
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
