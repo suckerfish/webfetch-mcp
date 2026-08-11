@@ -1,5 +1,6 @@
 """Core web fetch client using curl_cffi for Chrome TLS fingerprinting and trafilatura for extraction."""
 
+import asyncio
 import logging
 
 import trafilatura
@@ -63,7 +64,10 @@ class WebFetchClient:
         """
         html = await self._fetch(url, timeout=timeout)
 
-        content = trafilatura.extract(
+        # trafilatura is sync and CPU-bound. Run it off the event loop so one
+        # large page does not stall concurrent fetches.
+        content, meta = await asyncio.to_thread(
+            self._extract,
             html,
             output_format=output_format,
             favor_precision=favor_precision,
@@ -72,8 +76,6 @@ class WebFetchClient:
             include_images=include_images,
             include_tables=include_tables,
         )
-
-        meta = trafilatura.extract_metadata(html)
 
         metadata = FetchMetadata(
             title=meta.title if meta else None,
@@ -88,6 +90,28 @@ class WebFetchClient:
             metadata=metadata,
             output_format=output_format,
         )
+
+    @staticmethod
+    def _extract(
+        html: str,
+        output_format: str,
+        favor_precision: bool,
+        favor_recall: bool,
+        include_links: bool,
+        include_images: bool,
+        include_tables: bool,
+    ) -> tuple[str | None, object | None]:
+        """Run trafilatura extraction. Sync and CPU-bound — call via a thread."""
+        content = trafilatura.extract(
+            html,
+            output_format=output_format,
+            favor_precision=favor_precision,
+            favor_recall=favor_recall,
+            include_links=include_links,
+            include_images=include_images,
+            include_tables=include_tables,
+        )
+        return content, trafilatura.extract_metadata(html)
 
     async def fetch_raw(self, url: str, timeout: int = 30) -> RawFetchResult:
         """Fetch a URL and return raw HTML (truncated at 500KB).

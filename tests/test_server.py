@@ -13,8 +13,8 @@ class TestServerSetup:
 
     @pytest.mark.asyncio
     async def test_tool_list(self):
-        tools = await mcp.get_tools()
-        tool_names = {t.name for t in tools.values()}
+        tools = await mcp.list_tools()
+        tool_names = {t.name for t in tools}
         assert "fetch_url" in tool_names
         assert "fetch_raw" in tool_names
 
