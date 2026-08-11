@@ -14,9 +14,6 @@ build/
 # Environment
 .env
 
-# uv
-uv.lock
-
 # pytest
 .pytest_cache/
 
